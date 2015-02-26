@@ -1,0 +1,14 @@
+{
+  "replaces": [
+    {
+      "xpath": "//property[@name=\"ti.facebook.appid\"]",
+      "value": "1234567890"
+    }
+  ],
+  "additions": [
+    {
+      "xpath": "//ios/plist",
+      "content": "<dict><key>Test</key><array><string>test content</string></array></dict>"
+    }
+  ]
+}
