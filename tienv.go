@@ -85,12 +85,9 @@ func convertTiapp(c *cli.Context) {
 	conf, err := target.GetTiappWithRestore(c.GlobalString("directory"), c.GlobalString("backup"))
 	handleError(err)
 
-	handleError(getConfWithBackup(conf, c))
+	handleError(backupTarget(conf, c))
 
 	defer conf.Free()
-
-	err = conf.Replace("//property[@name=\"ti.facebook.appid\"]", "1234567890")
-	handleError(err)
 
 	handleError(conf.ReplaceWithConf(c.String("config")))
 	handleError(conf.AppendWithConf(c.String("config")))
@@ -111,7 +108,7 @@ func convertConfig(c *cli.Context) {
 
 	conf := target.GetConfigWithRestore(c.GlobalString("directory"), c.GlobalString("backup"))
 
-	handleError(getConfWithBackup(conf, c))
+	handleError(backupTarget(conf, c))
 
 	encoded, err := conf.ConvertEnv(targetEnv, asEnv)
 	handleError(err)
@@ -155,7 +152,7 @@ type convertTaget interface {
 	Backup(ext string) (backupPath string, err error)
 }
 
-func getConfWithBackup(t target.Target, c *cli.Context) (err error) {
+func backupTarget(t target.Target, c *cli.Context) (err error) {
 	backupPath, err := target.Backup(t, c.GlobalString("backup"))
 	if err == nil {
 		println("Backup file created: " + backupPath)
