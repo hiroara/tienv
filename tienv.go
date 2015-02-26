@@ -10,7 +10,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "tienv"
-	app.Usage = "TODO"
+	app.Usage = "tiny command to convert settings to switch between environment of Titanium project."
 	app.Author = "Hiroki Arai"
 	app.Email = "hiroara62@gmail.com"
 	app.Version = "0.0.1"
