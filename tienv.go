@@ -16,35 +16,21 @@ func main() {
 	app.Version = "0.0.1"
 	app.Commands = []cli.Command{
 		{
-			Name:      "config",
+			Name:      "convert",
 			ShortName: "c",
-			Usage:     "handle app/config.json",
+			Usage:     "convert setting file",
 			Flags:     flags,
 			Subcommands: []cli.Command{
 				{
-					Name:      "convert",
+					Name:      "config",
 					ShortName: "c",
-					Usage:     "convert environment settings",
+					Usage:     "convert app/config.json",
 					Action:    convertConfig,
 				},
 				{
-					Name:      "restore",
-					ShortName: "r",
-					Usage:     "restore backup file",
-					Action:    restoreConfig,
-				},
-			},
-		},
-		{
-			Name:      "tiapp",
-			ShortName: "t",
-			Usage:     "convert env of tiapp.xml",
-			Flags:     flags,
-			Subcommands: []cli.Command{
-				{
-					Name:      "convert",
-					ShortName: "c",
-					Usage:     "convert environment settings",
+					Name:      "tiapp",
+					ShortName: "t",
+					Usage:     "convert tiapp.xml",
 					Action:    convertTiapp,
 					Flags: []cli.Flag{
 						cli.StringFlag{
@@ -54,10 +40,25 @@ func main() {
 						},
 					},
 				},
+			},
+		},
+		{
+			Name:      "restore",
+			ShortName: "r",
+			Usage:     "restore setting file",
+			Flags:     flags,
+			Action:    restoreAll,
+			Subcommands: []cli.Command{
 				{
-					Name:      "restore",
-					ShortName: "r",
-					Usage:     "restore backup file",
+					Name:      "config",
+					ShortName: "c",
+					Usage:     "restore app/config.json",
+					Action:    restoreConfig,
+				},
+				{
+					Name:      "tiapp",
+					ShortName: "t",
+					Usage:     "restore tiapp.xml",
 					Action:    restoreTiapp,
 				},
 			},
@@ -100,13 +101,6 @@ func convertTiapp(c *cli.Context) {
 	println("Convered config file: " + path)
 }
 
-func restoreTiapp(c *cli.Context) {
-	conf, err := target.GetTiapp(c.GlobalString("directory"))
-	defer conf.Free()
-	handleError(err)
-	restoreTarget(conf, c)
-}
-
 func convertConfig(c *cli.Context) {
 	if len(c.Args()) != 2 {
 		handleError(errors.New("Usage: tienv <global options> config convert <target env> <as env>"))
@@ -129,14 +123,31 @@ func convertConfig(c *cli.Context) {
 	println("Convered config file: " + path)
 }
 
+func restoreTiapp(c *cli.Context) {
+	conf, err := target.GetTiapp(c.GlobalString("directory"))
+	defer conf.Free()
+	handleError(err)
+	handleError(restoreTarget(conf, c))
+}
+
 func restoreConfig(c *cli.Context) {
+	handleError(restoreTarget(target.GetConfig(c.GlobalString("directory")), c))
+}
+
+func restoreAll(c *cli.Context) {
+	conf, _ := target.GetTiapp(c.GlobalString("directory"))
+	defer conf.Free()
+	restoreTarget(conf, c)
 	restoreTarget(target.GetConfig(c.GlobalString("directory")), c)
 }
 
-func restoreTarget(t target.Target, c *cli.Context) {
+func restoreTarget(t target.Target, c *cli.Context) error {
 	backupPath, err := target.Restore(t, c.GlobalString("backup"))
-	handleError(err)
+	if err != nil {
+		return err
+	}
 	println("Restored from backup file: " + backupPath)
+	return nil
 }
 
 type convertTaget interface {
